@@ -30,6 +30,35 @@ def sort_files(list_to_sort):
     list_to_sort.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
 
 
+# method to create placeholder entires in database
+def create_empty_database(filepath_list: list) -> dict:
+
+    # create empty dict that will be returned
+    new_database_dict = {}
+
+    # prepare placeholder data that will be used for each file
+    empty_data = {"filename" : "no_name",
+                  "optimization_calc_done" : False,
+                  "frequency_calc_done" : False,
+                  "HF_energy" : 0,
+                  "HF_relative_energy" : 0,
+                  "HF_population" : 0,
+                  "dG_energy" : 0,
+                  "dG_relative_energy" : 0,
+                  "dG_population" : 0,
+                  "isUnique" : False,
+                  "full_filepath" : "default_path"}
+
+    # fill the database with placeholder data
+    for file in filepath_list:
+        new_database_dict[file] = empty_data
+
+    return new_database_dict
+
+
+def extract_data_from_files(folder_path, filepath_list):
+    pass
+
 
 # main method of conformer search. Called by GUI button
 def conformer_search_workflow(CS_folder_path, temperature, energy_limit):
@@ -51,10 +80,20 @@ def conformer_search_workflow(CS_folder_path, temperature, energy_limit):
             print('There is no valid *.out files in selected folder')
 
         else:
-            # Sort files in files list using natural sort
+            # Sort files in outfile_list using natural sort
             sort_files(outfile_list)
 
+            # initialize database that will store data from files
+            CS_database = create_empty_database(outfile_list)
+
+            # FOR DEBUGGING PURPOSE #
+            for entry in CS_database:
+                print([entry, CS_database[entry]])
+            
             # TODO extract data from files
+            # TODO multithreaded? :eyes:
+            extract_data_from_files(CS_folder_path, outfile_list)
+            
 
 
 if __name__== "__main__":
