@@ -51,7 +51,7 @@ def create_empty_database(filepath_list: list) -> dict:
 
     # fill the database with placeholder data
     for file in filepath_list:
-        new_database_dict[file] = empty_data
+        new_database_dict[file] = empty_data.copy()
 
     return new_database_dict
 
@@ -85,6 +85,8 @@ def conformer_search_workflow(CS_folder_path, temperature, energy_limit):
 
             # initialize database that will store data from files
             CS_database = create_empty_database(outfile_list)
+            
+            CS_database["BS_11_03_R_PhEtO_CS_92.gjf.out"]["filename"] = "NEW_NAME"
 
             # FOR DEBUGGING PURPOSE #
             for entry in CS_database:
