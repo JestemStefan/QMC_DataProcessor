@@ -3,11 +3,11 @@ import os
 import re
 
 
-# Method to load .out file paths from sleected folder
+# Method to load .out file paths from selected folder
 def load_files(selected_path):
 
-    # Create array of files to analyze
-    file_arr = []
+    # Create list of files to analyze
+    file_list = []
 
     # Look through files in the folder and find files with .out extension
     for file in os.listdir(selected_path):
@@ -16,18 +16,18 @@ def load_files(selected_path):
             # TODO Add method to check if file content is valid, not just extension
             
             # add file path to return list
-            file_arr.append(file)
+            file_list.append(file)
 
-    return file_arr # returns array of valid file paths
+    return file_list # returns list of valid file paths
 
 
 # Method for sorting loaded files based on last number in the name
 # because Gaussian number files like that ¯\_(ツ)_/¯
 
-def sorting_files(arr_to_sort):
+def sort_files(list_to_sort):
 
     # find all numbers in name and pick up the last number for sorting. 
-    arr_to_sort.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
+    list_to_sort.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
 
 
 
@@ -43,15 +43,18 @@ def conformer_search_workflow(CS_folder_path, temperature, energy_limit):
 
     else:
         # kiad valid files in the folder
-        outfile_arr = load_files(CS_folder_path)
+        outfile_list = load_files(CS_folder_path)
 
         # throw an error if there is NO files of correct type in folder
-        if len(outfile_arr) == 0:
+        if len(outfile_list) == 0:
             messagebox.showerror('Error: No valid files in selected folder', 'There is no valid *.out files in selected folder')
             print('There is no valid *.out files in selected folder')
 
         else:
-            pass
+            # Sort files in files list using natural sort
+            sort_files(outfile_list)
+
+            # TODO extract data from files
 
 
 if __name__== "__main__":
