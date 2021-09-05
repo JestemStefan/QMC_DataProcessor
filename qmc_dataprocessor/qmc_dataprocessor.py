@@ -63,6 +63,7 @@ def GUI_window():
                               text="Select folder",
                               height="2",
                               width="30",
+                              # run method to select a path
                               command=lambda: select_CS_folder_path(CS_path),
                               font=("Calibri", 12, 'bold'))
 
@@ -142,21 +143,21 @@ def GUI_window():
                            sticky=E)
 
     # Energy limit entry box
-    CS_EnergyLimit_entry = Entry(tab_ConformerSearch,
+    CS_energyLimit_entry = Entry(tab_ConformerSearch,
                                  width=10,
                                  justify="center",
                                  validate='key',
                                  font=("Calibri", 12, 'bold'))
 
     # set default value for energy limit (2 kcal)
-    CS_EnergyLimit_entry.delete(0, END)
-    CS_EnergyLimit_entry.insert(0, "2")
+    CS_energyLimit_entry.delete(0, END)
+    CS_energyLimit_entry.insert(0, "2")
 
     # Make sure that only digits, comma and dot can be used as input
-    CS_EnergyLimit_entry["validatecommand"] = (CS_EnergyLimit_entry.register(testVal), "%P", "%d")
+    CS_energyLimit_entry["validatecommand"] = (CS_energyLimit_entry.register(testVal), "%P", "%d")
 
     # Place energy limit entry box on a grid
-    CS_EnergyLimit_entry.grid(row=3,
+    CS_energyLimit_entry.grid(row=3,
                               column=1,
                               padx=0,
                               pady=0,
@@ -178,7 +179,8 @@ def GUI_window():
                                 text="Conformers energy analysis",
                                 height="2",
                                 width="30",
-                                command=lambda: cs_workflow.conformer_search_workflow(),
+                                # run method for conformer search with data from the GUI
+                                command=lambda: cs_workflow.conformer_search_workflow(CS_folderPath, float(CS_temperature_entry.get()), float(CS_energyLimit_entry.get())),
                                 font=("Calibri", 12, 'bold'))
 
     # Place button on the gird
