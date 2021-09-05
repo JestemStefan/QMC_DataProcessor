@@ -21,6 +21,16 @@ def load_files(selected_path):
     return file_arr # returns array of valid file paths
 
 
+# Method for sorting loaded files based on last number in the name
+# because Gaussian number files like that ¯\_(ツ)_/¯
+
+def sorting_files(arr_to_sort):
+
+    # find all numbers in name and pick up the last number for sorting. 
+    arr_to_sort.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
+
+
+
 # main method of conformer search. Called by GUI button
 def conformer_search_workflow(CS_folder_path, temperature, energy_limit):
 
