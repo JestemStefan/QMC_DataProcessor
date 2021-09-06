@@ -26,8 +26,15 @@ def load_files(selected_path):
 
 def sort_files(list_to_sort):
 
-    # find all numbers in name and pick up the last number for sorting. 
-    list_to_sort.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
+    # check if all names contain at least one number
+    # TODO It should check if all names are identical, except number at the end. But this is user mistake if names are mixed...
+    if all([True if len(re.findall('\d+', x)) > 0 else False for x in list_to_sort]):
+
+        # find all numbers in name and pick up the last number for sorting. 
+        list_to_sort.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
+
+    # not necessary, but I like it this way
+    return list_to_sort
 
 
 # method to create placeholder entires in database
@@ -81,12 +88,10 @@ def conformer_search_workflow(CS_folder_path, temperature, energy_limit):
 
         else:
             # Sort files in outfile_list using natural sort
-            sort_files(outfile_list)
+            outfile_list = sort_files(outfile_list)
 
             # initialize database that will store data from files
             CS_database = create_empty_database(outfile_list)
-            
-            CS_database["BS_11_03_R_PhEtO_CS_92.gjf.out"]["filename"] = "NEW_NAME"
 
             # FOR DEBUGGING PURPOSE #
             for entry in CS_database:
