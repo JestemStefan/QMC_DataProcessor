@@ -1,4 +1,4 @@
-from qmc_dataprocessor.conformer_search_workflow import sort_files
+from qmc_dataprocessor.conformer_search_workflow import extract_data_from_files, sort_files
 import unittest
 
 class Test_ConformerSearch_Sorting(unittest.TestCase):
@@ -8,11 +8,18 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
         self.unsorted_testlist_case1 = ["name_01_addname_89_thirdname_11",
                                         "name_05_addname_16_thirdname_01",
                                         "name_04_addname_57_thirdname_7"]
+        
+        # initial numberless list unsorted
+        self.unsorted_numberless_testlist = ["name_addname_thirdname_a",
+                                            "name_addname_thirdname_c",
+                                            "name_addname_thirdname_b"]
 
         # expected result, manually sorted list
         self.sorted_testlist_case1 = ["name_05_addname_16_thirdname_01",
                                       "name_04_addname_57_thirdname_7",
                                       "name_01_addname_89_thirdname_11"]
+
+        
 
 
     def tearDown(self):
@@ -48,13 +55,30 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
     
 
     def test_sorting_of_list_without_numbers(self):
-        # initial list unsorted
-        unsorted_numberless_testlist = ["name_addname_thirdname_a",
-                                        "name_addname_thirdname_b",
-                                        "name_addname_thirdname_c"]
+
+        expected_result_of_sorting_numberless_list = ["name_addname_thirdname_a",
+                                                    "name_addname_thirdname_b",
+                                                    "name_addname_thirdname_c"]
 
         # try sorting list without any numbers
-        sorted_numberless_testlist = sort_files(unsorted_numberless_testlist)
+        sorted_numberless_testlist = sort_files(self.unsorted_numberless_testlist)
 
         # Check if sorting of list was skipped so returned list should be still unsorted
-        self.assertEqual(sorted_numberless_testlist, unsorted_numberless_testlist)
+        self.assertEqual(sorted_numberless_testlist, expected_result_of_sorting_numberless_list)
+    
+
+    def test_sorting_list_with_mixed_names(self):
+
+        # create mixed list from number and numberless list of filenames
+        unsorted_mixed_list = self.unsorted_testlist_case1 + self.unsorted_numberless_testlist
+
+        expected_result_of_sorting_mixed_list = ["name_05_addname_16_thirdname_01",
+                                                "name_04_addname_57_thirdname_7",
+                                                "name_01_addname_89_thirdname_11",
+                                                "name_addname_thirdname_a",
+                                                "name_addname_thirdname_b",
+                                                "name_addname_thirdname_c"]
+        
+        sorted_mixed_list = sort_files(unsorted_mixed_list)
+
+        self.assertEqual(sorted_mixed_list, expected_result_of_sorting_mixed_list)
