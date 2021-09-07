@@ -26,20 +26,22 @@ def load_files(selected_path):
 
 def sort_files(list_to_sort):
 
-    # check if all names contain at least one number
-    # TODO It should check if all names are identical, except number at the end. But this is user mistake if names are mixed...
+    # Before sorting split list into two list: One without digits and one with some digits
     list_of_filenames_with_digits = [x for x in list_to_sort if len(re.findall('\d+', x)) > 0]
     list_of_filesnames_no_digits = [x for x in list_to_sort if len(re.findall('\d+', x)) == 0]
-    
 
-    if len(list_of_filenames_with_digits) > 0:
+    # TODO It should check if all names are identical, except number at the end. But this is user mistake if names are mixed...
+
+    # if there is something to sort by digits
+    if list_of_filenames_with_digits:
 
         # find all numbers in name and pick up the last number for sorting. 
         list_of_filenames_with_digits.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
     
+    # sort list without digits
     list_of_filesnames_no_digits.sort()
 
-    # not necessary, but I like it this way
+    # merge lists and return new list as result
     return list_of_filenames_with_digits + list_of_filesnames_no_digits
 
 
