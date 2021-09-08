@@ -82,8 +82,13 @@ def create_database_with_placeholder_data(list_of_filenames: list) -> dict:
     return new_database_dict
 
 
-def extract_data_from_files(folder_path, filepath_list):
-    pass
+def extract_data_from_files(folder_path, filenames_list):
+    
+    extracted_data = []
+    values_hf = []
+    values_dG = []
+    error_arr = []
+    vib_failed_arr = []
 
 
 # main method of conformer search. Called by GUI button
