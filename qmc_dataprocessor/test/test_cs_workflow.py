@@ -1,4 +1,4 @@
-from qmc_dataprocessor.conformer_search_workflow import extract_data_from_files, sort_files
+from qmc_dataprocessor.conformer_search_workflow import extract_data_from_files, sort_filenames_by_last_number
 import unittest
 
 class Test_ConformerSearch_Sorting(unittest.TestCase):
@@ -37,7 +37,7 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
     def test_list_natural_sorted(self):
 
         # sort the list of names using custom sorting method
-        sorted_test_list1 = sort_files(self.unsorted_testlist_case1)
+        sorted_test_list1 = sort_filenames_by_last_number(self.unsorted_testlist_case1)
 
         # list should be sorted
         self.assertEqual(sorted_test_list1, self.sorted_testlist_case1)
@@ -48,7 +48,7 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
 
         # create an empty list and sort it
         empty_list = []
-        sorted_empty_list = sort_files(empty_list)
+        sorted_empty_list = sort_filenames_by_last_number(empty_list)
 
         # should be equal
         self.assertEqual(sorted_empty_list, [])
@@ -61,7 +61,7 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
                                                     "name_addname_thirdname_c"]
 
         # try sorting list without any numbers
-        sorted_numberless_testlist = sort_files(self.unsorted_numberless_testlist)
+        sorted_numberless_testlist = sort_filenames_by_last_number(self.unsorted_numberless_testlist)
 
         # Check if sorting of list was skipped so returned list should be still unsorted
         self.assertEqual(sorted_numberless_testlist, expected_result_of_sorting_numberless_list)
@@ -79,6 +79,6 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
                                                 "name_addname_thirdname_b",
                                                 "name_addname_thirdname_c"]
         
-        sorted_mixed_list = sort_files(unsorted_mixed_list)
+        sorted_mixed_list = sort_filenames_by_last_number(unsorted_mixed_list)
 
         self.assertEqual(sorted_mixed_list, expected_result_of_sorting_mixed_list)
