@@ -5,9 +5,7 @@ import re
 
 # Method to find and load .out files in selected folder
 def find_out_files(selected_path: str) -> list:
-    """
-    Finds all files with .out extension in folder specified by path string. Returns list of filenames as list.
-    """
+    """Finds all files with .out extension in folder specified by path string. Returns list of filenames as list."""
 
     # Create empty list that will store .out files names
     file_list = []
@@ -29,9 +27,7 @@ def find_out_files(selected_path: str) -> list:
 # because Gaussian number files like that ¯\_(ツ)_/¯
 # use default sorting for names without numbers
 def sort_filenames_by_last_number(list_to_sort: list) -> list:
-    """
-    Sorts list by last number in filename if possible. Use default sort otherwise. Returns sorted list.
-    """
+    """Sorts list by last number in filename if possible. Use default sort otherwise. Returns sorted list."""
 
     # Before sorting split list into two list: One with filenames with numbers and one without any.
     list_of_filenames_with_numbers = [x for x in list_to_sort if len(re.findall('\d+', x)) > 0]
@@ -52,9 +48,7 @@ def sort_filenames_by_last_number(list_to_sort: list) -> list:
 
 # method for creating database with placeholder entires for each file
 def create_database_with_placeholder_data(list_of_filenames: list) -> dict:
-    """
-    Creates database dictionary with placeholder data for each file. Returns database as dictionary.
-    """
+    """Creates database dictionary with placeholder data for each file. Returns database as dictionary."""
 
     # TODO Move to SQL or some other database
 
@@ -82,20 +76,32 @@ def create_database_with_placeholder_data(list_of_filenames: list) -> dict:
     return new_database_dict
 
 
-def extract_data_from_files(folder_path, filenames_list):
+
+def filter_nonexisting_filenames(root_folder_path: str, filenames_list: list) -> list:
+    """Removes filenames to not existing files and return filtered list of valid filenames"""
+
+    return list(filter(lambda x: os.path.isfile("\\".join([root_folder_path, x])), filenames_list))
+
+
+def extract_hf_energy_data() -> float:
+    pass
+
+
+def extract_data_from_files(parent_folder_path, filenames_list):
+
+    filenames_list = filter_nonexisting_filenames(parent_folder_path, filenames_list)
+
+    if filenames_list:
+        pass
+
     
-    extracted_data = []
-    values_hf = []
-    values_dG = []
-    error_arr = []
-    vib_failed_arr = []
+
+    
 
 
 # main method of conformer search. Called by GUI button
 def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, energy_limit: float) -> None:
-    """
-    Performs analysis of data from conformer search calculations in specified parameters. Returns None.
-    """
+    """Performs analysis of data from conformer search calculations in specified parameters. Returns None."""
 
     # if no folder path was selected
     if not cs_parent_folderpath:  
@@ -109,7 +115,7 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
         outfile_list = find_out_files(cs_parent_folderpath)
 
         # throw an error message box if there is NO files of correct type in folder
-        if len(outfile_list):
+        if not len(outfile_list):
             messagebox.showerror('Error: No valid files in selected folder', 'There is no valid *.out files in selected folder')
             print('There is no valid *.out files in selected folder')
 

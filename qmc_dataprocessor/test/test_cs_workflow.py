@@ -1,4 +1,5 @@
-from qmc_dataprocessor.conformer_search_workflow import extract_data_from_files, sort_filenames_by_last_number
+from qmc_dataprocessor.conformer_search_workflow import extract_data_from_files, filter_nonexisting_filenames, sort_filenames_by_last_number
+import os
 import unittest
 
 class TestConformerSearchSorting(unittest.TestCase):
@@ -84,7 +85,8 @@ class TestConformerSearchSorting(unittest.TestCase):
 
 class TestConformerSearchExtractData(unittest.TestCase):
     def setUp(self):
-        pass
+        self.root_dir = os.path.dirname(os.path.abspath(__file__))
+        self.test_files_dir = "\\".join([self.root_dir, "cs_test_files"])
     
 
     def tearDown(self):
@@ -92,4 +94,50 @@ class TestConformerSearchExtractData(unittest.TestCase):
 
 
     def test_extract_data_filter_invalid_files(self):
+        """ Tests if filter_nonexisting_filenames() filters out all filepaths that doesn't lead to existing file. """
+
+        # create filename, absolute path for existing file
+        filename_to_existing_file = "created_file_for_testing.txt"
+        abs_filepath_to_existing_file = "\\".join([self.test_files_dir, filename_to_existing_file])
+
+        # create existing file
+        created_file = open(abs_filepath_to_existing_file, "x")
+
+        # check if file was successfully created
+        self.assertTrue(os.path.isfile(abs_filepath_to_existing_file))
+
+        # run tested method with only filepath to existing file
+        filtered_list_of_existing_filenames = filter_nonexisting_filenames(self.test_files_dir, [filename_to_existing_file])
+
+        # check if filepath to existing file was returned
+        self.assertEqual(filtered_list_of_existing_filenames, [filename_to_existing_file])
+
+
+        # create filename of nonexisting file
+        filename_of_nonexisting_file = "non_existing_file.txt"
+
+        # run tested method with only filepath to NOT existing file
+        filtered_list_of_nonexisting_filenames = filter_nonexisting_filenames(self.test_files_dir, [filename_of_nonexisting_file])
+
+        # check if filepath to NOT existing file was removed and None was returned
+        self.assertEqual(filtered_list_of_nonexisting_filenames, [])
+
+        # create test list of filenames
+        test_list_of_filepaths = [filename_to_existing_file, 
+                                  filename_of_nonexisting_file]
+
+        # run tested method
+        filtered_list_of_filenames = filter_nonexisting_filenames(self.test_files_dir, test_list_of_filepaths)
+
+        # check if method removed invalid filepath
+        self.assertEqual(filtered_list_of_filenames, [filename_to_existing_file])
+
+
+        # close file and delete it
+        created_file.close()
+        os.remove(abs_filepath_to_existing_file)
+    
+
+    def test_extract_hf_energy_data(self):
+        # TODO Add test for data extraction for Hatree-Fock (SCF) energy.
         pass
