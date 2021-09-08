@@ -1,6 +1,21 @@
+from enum import Enum
 from tkinter import messagebox
 import os
 import re
+
+class DictKeys(Enum):
+    KEY_FILENAME = 0
+    KEY_IS_OPTIMIZATION_DONE = 1
+    KEY_ARE_FREQUENCIES_REAL = 2
+    KEY_HF_ENERGY = 3
+    KEY_HF_RELATIVE_ENERGY = 4
+    KEY_HF_POPULATION = 5
+    KEY_DG_ENERGY = 6
+    KEY_DG_RELATIVE_ENERGY = 7
+    KEY_DG_POPULATION = 8
+    KEY_IS_UNIQUE = 9
+    KEY_ABSOLUTE_PATH = 10
+
 
 
 # Method to find and load .out files in selected folder
@@ -56,17 +71,17 @@ def create_database_with_placeholder_data(list_of_filenames: list) -> dict:
     new_database_dict = {}
 
     # prepare placeholder data that will be inserted into dict for each file
-    empty_data = {"filename" : "no_name",
-                  "optimization_calc_done" : False,
-                  "frequency_calc_done" : False,
-                  "HF_energy" : 0,
-                  "HF_relative_energy" : 0,
-                  "HF_population" : 0,
-                  "dG_energy" : 0,
-                  "dG_relative_energy" : 0,
-                  "dG_population" : 0,
-                  "isUnique" : False,
-                  "full_filepath" : "default_path"}
+    empty_data = {DictKeys.KEY_FILENAME : "no_name",
+                  DictKeys.KEY_IS_OPTIMIZATION_DONE : False,
+                  DictKeys.KEY_ARE_FREQUENCIES_REAL : True,
+                  DictKeys.KEY_HF_ENERGY : 0,
+                  DictKeys.KEY_HF_RELATIVE_ENERGY : 0,
+                  DictKeys.KEY_HF_POPULATION : 0,
+                  DictKeys.KEY_DG_ENERGY : 0,
+                  DictKeys.KEY_DG_RELATIVE_ENERGY : 0,
+                  DictKeys.KEY_DG_POPULATION : 0,
+                  DictKeys.KEY_IS_UNIQUE : False,
+                  DictKeys.KEY_ABSOLUTE_PATH : "default_path"}
 
     # fill the database with placeholder data
     for filename in list_of_filenames:
@@ -83,16 +98,72 @@ def filter_nonexisting_filenames(root_folder_path: str, filenames_list: list) ->
     return list(filter(lambda x: os.path.isfile("\\".join([root_folder_path, x])), filenames_list))
 
 
-def extract_hf_energy_data() -> float:
-    pass
+# # Extracts data about energy value from a line with specific substring. 
+# # This method is specific to Gaussian .out files.
+# def extract_hf_energy_data(text_line: str, previous_value: float) -> float:
+#     """Extracts data about Hatree-Fock energy if found in line. Returns energy value as float or None otherwise."""
+    
+#     if "SCF Done:" in text_line:
+        
+#         # find float value in line. Should be only one, but we will pick first just to be sure.
+#         extracted_value = re.findall("[+-]?[0-9]*[.][0-9]+", text_line)
+
+#         return float(extracted_value[0]) if extracted_value else previous_value
+    
+#     # if nothing was found then return previous value
+#     else:
+#         return previous_value
 
 
-def extract_data_from_files(parent_folder_path, filenames_list):
+def extract_data_from_files(parent_folder_path, filenames_list, data_base_dict):
 
     filenames_list = filter_nonexisting_filenames(parent_folder_path, filenames_list)
 
-    if filenames_list:
+    if not filenames_list:
         pass
+        # TODO display error
+    
+    for filename in filenames_list:
+
+        hf_energy_value = 0
+        dg_energy_value = 0
+        is_optimization_successful = False
+        are_all_frequencies_real = True
+
+        file_abs_filepath = "\\".join([parent_folder_path, filename])
+
+        with open(file_abs_filepath) as textfile_with_data:
+            
+            for line in textfile_with_data:
+                
+                
+                if "SCF Done:" in line:
+        
+                    # find float value in line. Should be only one, but we will pick first just to be sure.
+                    extracted_hf_data = re.findall("[+-]?[0-9]*[.][0-9]+", line)
+                    hf_energy_value = float(extracted_hf_data[0]) if extracted_hf_data else hf_energy_value
+                
+                elif "Free Energies=" in line:
+        
+                    # find float value in line. Should be only one, but we will pick first just to be sure.
+                    extracted_dg_data = re.findall("[+-]?[0-9]*[.][0-9]+", line)
+                    dg_energy_value = float(extracted_dg_data[0]) if extracted_dg_data else dg_energy_value
+                
+                elif "Normal termination" in line:
+                    is_optimization_successful = True
+                
+                elif "imaginary frequencies" in line:
+                    are_all_frequencies_real = False
+
+
+        
+        data_base_dict[filename][DictKeys.KEY_FILENAME] = filename
+        data_base_dict[filename][DictKeys.KEY_IS_OPTIMIZATION_DONE] = is_optimization_successful
+        data_base_dict[filename][DictKeys.KEY_ARE_FREQUENCIES_REAL] = are_all_frequencies_real
+        data_base_dict[filename][DictKeys.KEY_HF_ENERGY] = hf_energy_value
+        data_base_dict[filename][DictKeys.KEY_DG_ENERGY] = dg_energy_value
+        data_base_dict[filename][DictKeys.KEY_ABSOLUTE_PATH] = file_abs_filepath
+
 
     
 
@@ -128,8 +199,7 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             
             # TODO extract data from files
             # TODO multithreaded? :eyes:
-            extract_data_from_files(cs_parent_folderpath, outfile_list)
-            
+            extract_data_from_files(cs_parent_folderpath, outfile_list, cs_database)
 
 
 if __name__== "__main__":

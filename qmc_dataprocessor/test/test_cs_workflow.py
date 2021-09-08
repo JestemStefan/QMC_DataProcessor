@@ -1,4 +1,5 @@
-from qmc_dataprocessor.conformer_search_workflow import extract_data_from_files, filter_nonexisting_filenames, sort_filenames_by_last_number
+from qmc_dataprocessor.conformer_search_workflow import *
+from qmc_dataprocessor.conformer_search_workflow import DictKeys
 import os
 import unittest
 
@@ -139,5 +140,47 @@ class TestConformerSearchExtractData(unittest.TestCase):
     
 
     def test_extract_hf_energy_data(self):
-        # TODO Add test for data extraction for Hatree-Fock (SCF) energy.
-        pass
+        
+        test_filename = "test_extract_data_file.out"
+        test_file_filepath = "\\".join([self.test_files_dir, test_filename])
+        
+        test_file = open(test_file_filepath, "w+", encoding="utf-8")
+
+        # check if file was successfully created
+        self.assertTrue(os.path.isfile(test_file_filepath))
+
+        test_file.write("\n")
+        test_file.write("The quick brown fox jumps over the lazy dog \n")
+        test_file.write("3.14159265359 \n")
+        test_file.write("SCF Done:  some_string =  missing_data \n")
+        test_file.write("SCF Done:  some_other_string =  -3.14159265359 \n")
+        test_file.write("Sum of electronic and thermal Free Energies= missing_data \n")
+        test_file.write("Sum of electronic and thermal Free Energies=  1.61803398875 \n")
+        test_file.write("Normal termination of Gaussian 09 at Thu Jan 01 00:00:00 1970. \n")
+        test_file.write("       1 imaginary frequencies ignored. \n")
+
+        test_file.close()
+
+        test_file = open(test_file_filepath, "r", encoding="utf-8")
+
+        test_database_dict = {test_filename : {DictKeys.KEY_FILENAME : "no_name",
+                                            DictKeys.KEY_IS_OPTIMIZATION_DONE : False,
+                                            DictKeys.KEY_ARE_FREQUENCIES_REAL : True,
+                                            DictKeys.KEY_HF_ENERGY : 0,
+                                            DictKeys.KEY_DG_ENERGY : 0,
+                                            DictKeys.KEY_DG_RELATIVE_ENERGY : 0,
+                                            DictKeys.KEY_ABSOLUTE_PATH : "default_path"}}
+            
+        extract_data_from_files(self.test_files_dir, [test_filename], test_database_dict)
+
+        self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_FILENAME], test_filename)
+        self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_HF_ENERGY], -3.14159265359)
+        self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_IS_OPTIMIZATION_DONE], True)
+        self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_ARE_FREQUENCIES_REAL], False)
+        self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_ABSOLUTE_PATH], test_file_filepath)
+
+
+        test_file.close()    
+        os.remove(test_file_filepath)
+
+        
