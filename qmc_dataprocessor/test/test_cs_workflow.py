@@ -1,7 +1,7 @@
 from qmc_dataprocessor.conformer_search_workflow import extract_data_from_files, sort_filenames_by_last_number
 import unittest
 
-class Test_ConformerSearch_Sorting(unittest.TestCase):
+class TestConformerSearchSorting(unittest.TestCase):
 
     def setUp(self):
         # initial list unsorted
@@ -19,9 +19,7 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
                                       "name_04_addname_57_thirdname_7",
                                       "name_01_addname_89_thirdname_11"]
 
-        
-
-
+    
     def tearDown(self):
         pass
 
@@ -82,3 +80,16 @@ class Test_ConformerSearch_Sorting(unittest.TestCase):
         sorted_mixed_list = sort_filenames_by_last_number(unsorted_mixed_list)
 
         self.assertEqual(sorted_mixed_list, expected_result_of_sorting_mixed_list)
+
+
+class TestConformerSearchExtractData(unittest.TestCase):
+    def setUp(self):
+        pass
+    
+
+    def tearDown(self):
+        pass
+
+
+    def test_extract_data_filter_invalid_files(self):
+        pass
