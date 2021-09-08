@@ -6,33 +6,43 @@ import conformer_search_workflow as cs_workflow
 
 # Global Variables
 # tkinter doesn't work without that :/
-CS_folderPath = ""
+CS_FOLDER_PATH = ""
 
 
 # Select folder path for conformer search workflow
-def select_CS_folder_path(CS_Var):
-
+def select_cs_folder_path(cs_var: StringVar) -> None:
+    """
+    Opens file explorer and allow folder selection. Updates global variable and returns None.
+    """
+    
     # Access global variable
-    global CS_folderPath
+    global CS_FOLDER_PATH
 
     # Use file explorer to find correct folder and get its path
-    CS_folderPath = filedialog.askdirectory()
+    CS_FOLDER_PATH = filedialog.askdirectory()
 
     # set path variable to selected path
-    CS_Var.set(CS_folderPath)
+    cs_var.set(CS_FOLDER_PATH)
 
 
 # Input validation for entry windows
-def testVal(inStr, acttyp):
-    if acttyp == '1': # insert mode
-        if not inStr.isdigit() and not "." in inStr and not "," in inStr:
+def test_val(input_str: str, action_type: int) -> bool:
+    """
+    Validates if user input into GUI entry is a number. Returns True if it is. False otherwise.
+    """
+
+    if action_type == '1': # insert mode
+        if not input_str.isdigit() and not "." in input_str and not "," in input_str:
             return False
 
     return True # valid input
 
 
 # setup GUI
-def GUI_window():
+def GUI_window() -> None:
+    """
+    Creates and update Graphical User Interface. Returns None
+    """
     
     # initialize
     GUI = Tk()
@@ -45,151 +55,151 @@ def GUI_window():
     tab_parent = ttk.Notebook(GUI)
 
     # add two tabs for different workflows
-    tab_ConformerSearch = ttk.Frame(tab_parent)
-    tab_CircularDichroism = ttk.Frame(tab_parent)
+    tab_conformer_search = ttk.Frame(tab_parent)
+    tab_circular_dichroism = ttk.Frame(tab_parent)
 
     # give name to each tab
-    tab_parent.add(tab_ConformerSearch, text="Conformer Search")
-    tab_parent.add(tab_CircularDichroism, text="Circular Dichroism")
+    tab_parent.add(tab_conformer_search, text="Conformer Search")
+    tab_parent.add(tab_circular_dichroism, text="Circular Dichroism")
 
     # create grid for elements
     tab_parent.grid()
 
     # String variable for storing path to folder selected for extracting CD data
-    CS_path = StringVar()
+    cs_path = StringVar()
 
     # Button for selecting path to folder for CS analysis
-    CS_select_button = Button(tab_ConformerSearch,
-                              text="Select folder",
-                              height="2",
-                              width="30",
+    cs_select_button = Button(tab_conformer_search,
+                              text = "Select folder",
+                              height = "2",
+                              width = "30",
                               # run method to select a path
-                              command=lambda: select_CS_folder_path(CS_path),
-                              font=("Calibri", 12, 'bold'))
+                              command = lambda: select_cs_folder_path(cs_path),
+                              font = ("Calibri", 12, 'bold'))
 
     # Place button on grid
-    CS_select_button.grid(row=0,
-                          column=0,
-                          padx=40,
-                          pady=20,
-                          columnspan=3,
-                          sticky=W+E+N+S)
+    cs_select_button.grid(row = 0,
+                          column = 0,
+                          padx = 40,
+                          pady = 20,
+                          columnspan = 3,
+                          sticky= W+E+N+S)
 
     # Add label that will display selected path
-    filePathLabel = Message(tab_ConformerSearch,
-                            textvariable=CS_path,
-                            font=("Calibri", 10, "bold"),
-                            width=350)
+    file_path_label = Message(tab_conformer_search,
+                            textvariable = cs_path,
+                            font = ("Calibri", 10, "bold"),
+                            width = 350)
 
     # Place Label on the gird
-    filePathLabel.grid(row=1,
-                       column=0,
-                       pady=0,
-                       columnspan=3,
-                       sticky=W+E+N+S)
+    file_path_label.grid(row = 1,
+                       column = 0,
+                       pady = 0,
+                       columnspan = 3,
+                       sticky = W+E+N+S)
 
      # Temperature label
-    temperature_label = Label(tab_ConformerSearch,
-                              text="Temperature",
-                              font=("Calibri", 12, 'bold'))
+    temperature_label = Label(tab_conformer_search,
+                              text = "Temperature",
+                              font = ("Calibri", 12, 'bold'))
 
     # Place temperature label on a grid
-    temperature_label.grid(row=2,
-                           column=0,
-                           padx=0,
-                           sticky=E)
+    temperature_label.grid(row = 2,
+                           column = 0,
+                           padx = 0,
+                           sticky = E)
 
     # Temperature entry
-    CS_temperature_entry = Entry(tab_ConformerSearch,
-                                 width=10,
-                                 justify="center",
-                                 validate='key',
-                                 font=("Calibri", 12, 'bold'))
+    cs_temperature_entry = Entry(tab_conformer_search,
+                                 width = 10,
+                                 justify = "center",
+                                 validate = 'key',
+                                 font = ("Calibri", 12, 'bold'))
 
     # set default value for temperature (25 degrees Celsius or 298.15 K)
-    CS_temperature_entry.delete(0, END)
-    CS_temperature_entry.insert(0, "298.15")
+    cs_temperature_entry.delete(0, END)
+    cs_temperature_entry.insert(0, "298.15")
 
     # set up validation method to validate user input
-    CS_temperature_entry["validatecommand"] = (CS_temperature_entry.register(testVal), "%P", "%d")
+    cs_temperature_entry["validatecommand"] = (cs_temperature_entry.register(test_val), "%P", "%d")
 
     # Place temperature entry on a grid
-    CS_temperature_entry.grid(row=2,
-                              column=1,
-                              padx=0,
-                              pady=10,
-                              sticky=E)
+    cs_temperature_entry.grid(row = 2,
+                              column = 1,
+                              padx = 0,
+                              pady = 10,
+                              sticky = E)
 
     # Temperature unit label
-    temperature_unit_label = Label(tab_ConformerSearch,
-                                   text="K",
-                                   font=("Calibri", 12, 'bold'))
+    temperature_unit_label = Label(tab_conformer_search,
+                                   text = "K",
+                                   font = ("Calibri", 12, 'bold'))
 
-    # Place temperatur unit label on a grid
-    temperature_unit_label.grid(row=2,
-                           column=2,
-                           padx=0,
-                           sticky=W)
+    # Place temperature unit label on a grid
+    temperature_unit_label.grid(row = 2,
+                           column = 2,
+                           padx = 0,
+                           sticky = W)
 
     # Energy limit label
-    energyLimit_label = Label(tab_ConformerSearch,
-                              text="Energy limit",
-                              font=("Calibri", 12, 'bold'))
+    energy_limit_label = Label(tab_conformer_search,
+                              text = "Energy limit",
+                              font = ("Calibri", 12, 'bold'))
 
     # Place nergy limit label on a gird
-    energyLimit_label.grid(row=3,
-                           column=0,
-                           padx=0,
-                           sticky=E)
+    energy_limit_label.grid(row = 3,
+                           column = 0,
+                           padx = 0,
+                           sticky = E)
 
     # Energy limit entry box
-    CS_energyLimit_entry = Entry(tab_ConformerSearch,
-                                 width=10,
-                                 justify="center",
-                                 validate='key',
-                                 font=("Calibri", 12, 'bold'))
+    cs_energy_limit_entry = Entry(tab_conformer_search,
+                                 width = 10,
+                                 justify = "center",
+                                 validate = 'key',
+                                 font = ("Calibri", 12, 'bold'))
 
     # set default value for energy limit (2 kcal)
-    CS_energyLimit_entry.delete(0, END)
-    CS_energyLimit_entry.insert(0, "2")
+    cs_energy_limit_entry.delete(0, END)
+    cs_energy_limit_entry.insert(0, "2")
 
     # Make sure that only digits, comma and dot can be used as input
-    CS_energyLimit_entry["validatecommand"] = (CS_energyLimit_entry.register(testVal), "%P", "%d")
+    cs_energy_limit_entry["validatecommand"] = (cs_energy_limit_entry.register(test_val), "%P", "%d")
 
     # Place energy limit entry box on a grid
-    CS_energyLimit_entry.grid(row=3,
-                              column=1,
-                              padx=0,
-                              pady=0,
-                              sticky=E)
+    cs_energy_limit_entry.grid(row = 3,
+                              column = 1,
+                              padx = 0,
+                              pady = 0,
+                              sticky = E)
 
     # Energy limit label
-    CS_Energy_Unit_label = Label(tab_ConformerSearch,
-                                 text="kcal/mol",
-                                 font=("Calibri", 12, 'bold'))
+    cs_energy_unit_label = Label(tab_conformer_search,
+                                 text = "kcal/mol",
+                                 font = ("Calibri", 12, 'bold'))
 
     # Place energy limit label on a grid
-    CS_Energy_Unit_label.grid(row=3,
-                                column=2,
-                                padx=0,
-                                sticky=W)
+    cs_energy_unit_label.grid(row = 3,
+                                column = 2,
+                                padx = 0,
+                                sticky = W)
 
     # This button starts conformer search analysis
-    CS_analysis_button = Button(tab_ConformerSearch,
-                                text="Conformers energy analysis",
-                                height="2",
-                                width="30",
+    cs_analysis_button = Button(tab_conformer_search,
+                                text = "Conformers energy analysis",
+                                height = "2",
+                                width = "30",
                                 # run method for conformer search with data from the GUI
-                                command=lambda: cs_workflow.conformer_search_workflow(CS_folderPath, float(CS_temperature_entry.get()), float(CS_energyLimit_entry.get())),
-                                font=("Calibri", 12, 'bold'))
+                                command = lambda: cs_workflow.conformer_search_workflow(CS_FOLDER_PATH, float(cs_temperature_entry.get()), float(cs_energy_limit_entry.get())),
+                                font = ("Calibri", 12, 'bold'))
 
     # Place button on the gird
-    CS_analysis_button.grid(row=4,
-                            column=0,
-                            padx=40,
-                            pady=20,
-                            columnspan=3,
-                            sticky=W+E+N+S)
+    cs_analysis_button.grid(row = 4,
+                            column = 0,
+                            padx = 40,
+                            pady = 20,
+                            columnspan = 3,
+                            sticky = W+E+N+S)
 
     # loop/refresh
     GUI.mainloop()
