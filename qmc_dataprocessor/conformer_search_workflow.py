@@ -200,6 +200,10 @@ def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int,
 
 
 
+def find_unique_and_duplicate_conformers(database_dict: dict) -> None:
+    pass
+
+
 
 # main method of conformer search. Called by GUI button
 def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, energy_limit: float) -> None:
@@ -234,6 +238,8 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             # Calculate relative values of energy for Hatree-Fock energy and Gibbs free energy
             calculate_relative_energy_values(cs_database, DictKeys.KEY_HF_ENERGY, DictKeys.KEY_IS_OPTIMIZATION_DONE, DictKeys.KEY_HF_RELATIVE_ENERGY)
             calculate_relative_energy_values(cs_database, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL, DictKeys.KEY_DG_RELATIVE_ENERGY)
+
+            find_unique_and_duplicate_conformers()
 
 
 
