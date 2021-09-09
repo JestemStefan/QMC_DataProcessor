@@ -171,6 +171,12 @@ def get_valid_energy_values(database_dict: dict, INPUT_ENERGY_KEY, VALIDATION_KE
 def get_relative_value_in_kcal(input_value: float, base_value: float) -> float:
     """Takes input value and substracts minimal value from it. Use HATREE_CONST to convert value to kcal/mol. Returns relative value as float"""
     
+    if type(input_value) not in [int, float]:
+        raise TypeError("Input value must be a number")
+    
+    if type(base_value) not in [int, float]:
+        raise TypeError("Base value must be a number")
+
     return (input_value - base_value) * CustomConstants.HATREE_CONST
 
 
@@ -185,7 +191,12 @@ def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int,
 
     # for each file calculate relative energy value in kcal/mol and insert it into database dict
     for file in database_dict.keys():
-        database_dict[file][OUTPUT_ENERGY_KEY] = get_relative_value_in_kcal(database_dict[file][INPUT_ENERGY_KEY], min_energy_value)
+        if database_dict[file][VALIDATION_KEY]:
+            database_dict[file][OUTPUT_ENERGY_KEY] = get_relative_value_in_kcal(database_dict[file][INPUT_ENERGY_KEY], min_energy_value)
+        
+        # if validation fail then return "-" aka don't try to calculate it
+        else:
+            database_dict[file][OUTPUT_ENERGY_KEY] = "-"
 
 
 
