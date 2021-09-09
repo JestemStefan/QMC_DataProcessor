@@ -91,83 +91,72 @@ def create_database_with_placeholder_data(list_of_filenames: list) -> dict:
     return new_database_dict
 
 
-
 def filter_nonexisting_filenames(root_folder_path: str, filenames_list: list) -> list:
     """Removes filenames to not existing files and return filtered list of valid filenames"""
 
     return list(filter(lambda x: os.path.isfile("\\".join([root_folder_path, x])), filenames_list))
 
 
-# # Extracts data about energy value from a line with specific substring. 
-# # This method is specific to Gaussian .out files.
-# def extract_hf_energy_data(text_line: str, previous_value: float) -> float:
-#     """Extracts data about Hatree-Fock energy if found in line. Returns energy value as float or None otherwise."""
-    
-#     if "SCF Done:" in text_line:
-        
-#         # find float value in line. Should be only one, but we will pick first just to be sure.
-#         extracted_value = re.findall("[+-]?[0-9]*[.][0-9]+", text_line)
-
-#         return float(extracted_value[0]) if extracted_value else previous_value
-    
-#     # if nothing was found then return previous value
-#     else:
-#         return previous_value
-
-
+# Method for extracting data from text files. This method is very specific to Gaussian output files.
 def extract_data_from_files(parent_folder_path, filenames_list, data_base_dict):
+    """Extracts data values from Gaussian output files. Insert them into provided dictionary. Returns None"""
 
+    # filter out filenames to non-existing files
     filenames_list = filter_nonexisting_filenames(parent_folder_path, filenames_list)
 
+    # if there are no valid filenames.
     if not filenames_list:
         pass
         # TODO display error
-    
-    for filename in filenames_list:
 
-        hf_energy_value = 0
-        dg_energy_value = 0
-        is_optimization_successful = False
-        are_all_frequencies_real = True
-
-        file_abs_filepath = "\\".join([parent_folder_path, filename])
-
-        with open(file_abs_filepath) as textfile_with_data:
+    else:
+        # Run method for each file in sequence
+        # TODO Can be easily parallelized (Multicore?)
+        for filename in filenames_list:
             
-            for line in textfile_with_data:
-                
-                
-                if "SCF Done:" in line:
-        
-                    # find float value in line. Should be only one, but we will pick first just to be sure.
-                    extracted_hf_data = re.findall("[+-]?[0-9]*[.][0-9]+", line)
-                    hf_energy_value = float(extracted_hf_data[0]) if extracted_hf_data else hf_energy_value
-                
-                elif "Free Energies=" in line:
-        
-                    # find float value in line. Should be only one, but we will pick first just to be sure.
-                    extracted_dg_data = re.findall("[+-]?[0-9]*[.][0-9]+", line)
-                    dg_energy_value = float(extracted_dg_data[0]) if extracted_dg_data else dg_energy_value
-                
-                elif "Normal termination" in line:
-                    is_optimization_successful = True
-                
-                elif "imaginary frequencies" in line:
-                    are_all_frequencies_real = False
+            # get default values from database
+            hf_energy_value = data_base_dict[filename][DictKeys.KEY_HF_ENERGY]
+            dg_energy_value = data_base_dict[filename][DictKeys.KEY_DG_ENERGY]
+            is_optimization_successful = data_base_dict[filename][DictKeys.KEY_IS_OPTIMIZATION_DONE]
+            are_all_frequencies_real = data_base_dict[filename][DictKeys.KEY_ARE_FREQUENCIES_REAL]
 
+            # create abslute path for file for convenience
+            file_abs_filepath = "\\".join([parent_folder_path, filename])
 
-        
-        data_base_dict[filename][DictKeys.KEY_FILENAME] = filename
-        data_base_dict[filename][DictKeys.KEY_IS_OPTIMIZATION_DONE] = is_optimization_successful
-        data_base_dict[filename][DictKeys.KEY_ARE_FREQUENCIES_REAL] = are_all_frequencies_real
-        data_base_dict[filename][DictKeys.KEY_HF_ENERGY] = hf_energy_value
-        data_base_dict[filename][DictKeys.KEY_DG_ENERGY] = dg_energy_value
-        data_base_dict[filename][DictKeys.KEY_ABSOLUTE_PATH] = file_abs_filepath
+            # open file and check each line in it
+            with open(file_abs_filepath) as textfile_with_data:
 
-
-    
-
-    
+                for line in textfile_with_data:
+                    
+                    # SCF (self-consistent field) method value is Hatree-Fock energy. (Historic reasons?)
+                    if "SCF Done:" in line:
+            
+                        # find float value in line. Should be only one, but we will pick first just to be sure.
+                        extracted_hf_data = re.findall("[+-]?[0-9]*[.][0-9]+", line)
+                        hf_energy_value = float(extracted_hf_data[0]) if extracted_hf_data else hf_energy_value
+                    
+                    # dG (Gibbs free energy) value
+                    elif "Free Energies=" in line:
+            
+                        # find float value in line. Should be only one, but we will pick first just to be sure.
+                        extracted_dg_data = re.findall("[+-]?[0-9]*[.][0-9]+", line)
+                        dg_energy_value = float(extracted_dg_data[0]) if extracted_dg_data else dg_energy_value
+                    
+                    # if file contain "Normal termination" phrase then structure optimization was successful.
+                    elif "Normal termination" in line:
+                        is_optimization_successful = True
+                    
+                    # if file contain "imaginary frequencies" phrase then some frequencies have negative values.
+                    elif "imaginary frequencies" in line:
+                        are_all_frequencies_real = False
+            
+            # Insert data into database
+            data_base_dict[filename][DictKeys.KEY_FILENAME] = filename
+            data_base_dict[filename][DictKeys.KEY_IS_OPTIMIZATION_DONE] = is_optimization_successful
+            data_base_dict[filename][DictKeys.KEY_ARE_FREQUENCIES_REAL] = are_all_frequencies_real
+            data_base_dict[filename][DictKeys.KEY_HF_ENERGY] = hf_energy_value
+            data_base_dict[filename][DictKeys.KEY_DG_ENERGY] = dg_energy_value
+            data_base_dict[filename][DictKeys.KEY_ABSOLUTE_PATH] = file_abs_filepath
 
 
 # main method of conformer search. Called by GUI button

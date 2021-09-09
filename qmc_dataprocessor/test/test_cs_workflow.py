@@ -139,47 +139,54 @@ class TestConformerSearchExtractData(unittest.TestCase):
         os.remove(abs_filepath_to_existing_file)
     
 
-    def test_extract_hf_energy_data(self):
-        
+    def test_data_extraction_from_files(self):
+        """Tests data extraction method from .out files for Conformer Search"""
+
+        # create test file
         test_filename = "test_extract_data_file.out"
         test_file_filepath = "\\".join([self.test_files_dir, test_filename])
-        
-        test_file = open(test_file_filepath, "w+", encoding="utf-8")
+        test_file = open(test_file_filepath, "w", encoding="utf-8")
 
         # check if file was successfully created
         self.assertTrue(os.path.isfile(test_file_filepath))
-
+        
+        # insert lines of data into file
         test_file.write("\n")
         test_file.write("The quick brown fox jumps over the lazy dog \n")
         test_file.write("3.14159265359 \n")
+        test_file.write("SCF Done:  some_other_string =  -3.14159265359 \n") # <- valid data line
         test_file.write("SCF Done:  some_string =  missing_data \n")
-        test_file.write("SCF Done:  some_other_string =  -3.14159265359 \n")
+        test_file.write("Sum of electronic and thermal Free Energies=  1.61803398875 \n") # <- valid data line
         test_file.write("Sum of electronic and thermal Free Energies= missing_data \n")
-        test_file.write("Sum of electronic and thermal Free Energies=  1.61803398875 \n")
-        test_file.write("Normal termination of Gaussian 09 at Thu Jan 01 00:00:00 1970. \n")
-        test_file.write("       1 imaginary frequencies ignored. \n")
-
+        test_file.write("Normal termination of Gaussian 09 at Thu Jan 01 00:00:00 1970. \n") # <- valid data line
+        test_file.write("       1 imaginary frequencies ignored. \n") # <- valid data line
+        
+        # close file, because you are good human
         test_file.close()
 
-        test_file = open(test_file_filepath, "r", encoding="utf-8")
-
+        # create empty database
         test_database_dict = {test_filename : {DictKeys.KEY_FILENAME : "no_name",
-                                            DictKeys.KEY_IS_OPTIMIZATION_DONE : False,
-                                            DictKeys.KEY_ARE_FREQUENCIES_REAL : True,
-                                            DictKeys.KEY_HF_ENERGY : 0,
-                                            DictKeys.KEY_DG_ENERGY : 0,
-                                            DictKeys.KEY_DG_RELATIVE_ENERGY : 0,
-                                            DictKeys.KEY_ABSOLUTE_PATH : "default_path"}}
-            
+                                                DictKeys.KEY_IS_OPTIMIZATION_DONE : False,
+                                                DictKeys.KEY_ARE_FREQUENCIES_REAL : True,
+                                                DictKeys.KEY_HF_ENERGY : 0,
+                                                DictKeys.KEY_DG_ENERGY : 0,
+                                                DictKeys.KEY_DG_RELATIVE_ENERGY : 0,
+                                                DictKeys.KEY_ABSOLUTE_PATH : "default_path"}}
+
+        # open file again in read mode
+        test_file = open(test_file_filepath, "r", encoding="utf-8")
+        
+        # Run method on provided file and database
         extract_data_from_files(self.test_files_dir, [test_filename], test_database_dict)
 
+        # Validate result of the method
         self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_FILENAME], test_filename)
         self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_HF_ENERGY], -3.14159265359)
         self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_IS_OPTIMIZATION_DONE], True)
         self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_ARE_FREQUENCIES_REAL], False)
         self.assertEqual(test_database_dict[test_filename][DictKeys.KEY_ABSOLUTE_PATH], test_file_filepath)
 
-
+        # Close file and remove it
         test_file.close()    
         os.remove(test_file_filepath)
 
