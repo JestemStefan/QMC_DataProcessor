@@ -245,4 +245,4 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
 
 
 if __name__== "__main__":
-    conformer_search_workflow()
+    conformer_search_workflow(os.path.dirname(os.path.abspath(__file__)), 293.15, 2.0)
