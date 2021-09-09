@@ -191,3 +191,79 @@ class TestConformerSearchExtractData(unittest.TestCase):
         os.remove(test_file_filepath)
 
         
+class TestConformerSearchRelativeValues(unittest.TestCase):
+    def setUp(self):
+        self.test_database_dict = {"testkey1": {DictKeys.KEY_HF_ENERGY: 3.0,
+                                                DictKeys.KEY_IS_OPTIMIZATION_DONE: True,
+                                                DictKeys.KEY_HF_RELATIVE_ENERGY: 0,
+                                                DictKeys.KEY_DG_ENERGY: 3.0,
+                                                DictKeys.KEY_ARE_FREQUENCIES_REAL: True,
+                                                DictKeys.KEY_DG_RELATIVE_ENERGY: 0},
+
+                                    "testkey2": {DictKeys.KEY_HF_ENERGY: 2.0,
+                                                DictKeys.KEY_IS_OPTIMIZATION_DONE: False,
+                                                DictKeys.KEY_HF_RELATIVE_ENERGY: 0,
+                                                DictKeys.KEY_DG_ENERGY: 2.0,
+                                                DictKeys.KEY_ARE_FREQUENCIES_REAL: True,
+                                                DictKeys.KEY_DG_RELATIVE_ENERGY: 0},
+                            
+                                    "testkey3": {DictKeys.KEY_HF_ENERGY: 1.0,
+                                                DictKeys.KEY_IS_OPTIMIZATION_DONE: True,
+                                                DictKeys.KEY_HF_RELATIVE_ENERGY: 0,
+                                                DictKeys.KEY_DG_ENERGY: 1.0,
+                                                DictKeys.KEY_ARE_FREQUENCIES_REAL: False,
+                                                DictKeys.KEY_DG_RELATIVE_ENERGY: 0}}
+    
+
+    def tearDown(self):
+        pass
+
+
+    def test_get_valid_energy_values(self):
+        """Tests if get_valid_energy_values() method remove invalid energy values"""
+
+        # Run method for Hatree-Fock energies
+        hf_energy_result = get_valid_energy_values(self.test_database_dict, DictKeys.KEY_HF_ENERGY, DictKeys.KEY_IS_OPTIMIZATION_DONE)
+
+        # Valide the result
+        self.assertEqual(hf_energy_result, [3.0, 1.0])
+
+        # Run method for Gibbs free energy
+        dg_energy_result = get_valid_energy_values(self.test_database_dict, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL)
+
+        # validate the result
+        self.assertEqual(dg_energy_result, [3.0, 2.0])
+
+        self.assertRaises(KeyError, get_valid_energy_values, self.test_database_dict, "hello", DictKeys.KEY_IS_OPTIMIZATION_DONE)
+    
+
+    def test_get_relative_value_in_kcal(self):
+        """Tests if calculated relative value is correct"""
+
+        # check if method returns correct values for numbers
+        self.assertEqual(get_relative_value_in_kcal(1.0, 0.0), 627.5094740631)
+        self.assertEqual(get_relative_value_in_kcal(0.0, 0.0), 0.0)
+        self.assertEqual(get_relative_value_in_kcal(-3.2, 1.5), -2949.29452809657)
+        
+        # check if method raises and error with wrong type of parameter
+        self.assertRaises(TypeError, get_relative_value_in_kcal, True, 1)
+        self.assertRaises(TypeError, get_relative_value_in_kcal, "string", 1)
+
+        self.assertRaises(TypeError, get_relative_value_in_kcal, 0, True)
+        self.assertRaises(TypeError, get_relative_value_in_kcal, 0, "string")
+
+
+    def test_calculate_relative_energy_values(self):
+
+        calculate_relative_energy_values(self.test_database_dict, DictKeys.KEY_HF_ENERGY, DictKeys.KEY_IS_OPTIMIZATION_DONE, DictKeys.KEY_HF_RELATIVE_ENERGY)
+        
+        self.assertEqual(self.test_database_dict["testkey1"][DictKeys.KEY_HF_RELATIVE_ENERGY], 1255.0189481262)
+        self.assertEqual(self.test_database_dict["testkey2"][DictKeys.KEY_HF_RELATIVE_ENERGY], "-")
+        self.assertEqual(self.test_database_dict["testkey3"][DictKeys.KEY_HF_RELATIVE_ENERGY], 0)
+
+        calculate_relative_energy_values(self.test_database_dict, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL, DictKeys.KEY_DG_RELATIVE_ENERGY)
+
+        self.assertEqual(self.test_database_dict["testkey1"][DictKeys.KEY_DG_RELATIVE_ENERGY], 627.5094740631)
+        self.assertEqual(self.test_database_dict["testkey2"][DictKeys.KEY_DG_RELATIVE_ENERGY], 0)
+        self.assertEqual(self.test_database_dict["testkey3"][DictKeys.KEY_DG_RELATIVE_ENERGY], "-")
+
