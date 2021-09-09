@@ -17,6 +17,9 @@ class DictKeys(Enum):
     KEY_ABSOLUTE_PATH = 10
 
 
+class CustomConstants:
+    HATREE_CONST = 627.5094740631 #kcal/mol
+
 
 # Method to find and load .out files in selected folder
 def find_out_files(selected_path: str) -> list:
@@ -98,7 +101,7 @@ def filter_nonexisting_filenames(root_folder_path: str, filenames_list: list) ->
 
 
 # Method for extracting data from text files. This method is very specific to Gaussian output files.
-def extract_data_from_files(parent_folder_path, filenames_list, data_base_dict):
+def extract_data_from_files(parent_folder_path: str, filenames_list: list, data_base_dict: dict) -> None:
     """Extracts data values from Gaussian output files. Insert them into provided dictionary. Returns None"""
 
     # filter out filenames to non-existing files
@@ -159,6 +162,33 @@ def extract_data_from_files(parent_folder_path, filenames_list, data_base_dict):
             data_base_dict[filename][DictKeys.KEY_ABSOLUTE_PATH] = file_abs_filepath
 
 
+def get_valid_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int, VALIDATION_KEY: int) -> list:
+    """Extract values specified by an INPUT_ENERGY_KEY from a database_dict that return True from VALIDATION_KEY. Returns list of extracted values"""
+
+    return [database_dict[file][INPUT_ENERGY_KEY] for file in database_dict.keys() if database_dict[file][VALIDATION_KEY]]
+
+
+def get_relative_value_in_kcal(input_value: float, minimal_value: float) -> float:
+    """Takes input value and substracts minimal value from it. Use HATREE_CONST to convert value to kcal/mol. Returns relative value as float"""
+    return (input_value - minimal_value) * CustomConstants.HATREE_CONST
+
+
+def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int, VALIDATION_KEY: int, OUTPUT_ENERGY_KEY: int):
+    """Calculate relative values of energy data. Insert data straight into dictionary. Returns None."""
+    
+    # Get correct values by removing values from files that failed calculations.
+    list_of_all_energies = get_valid_energy_values(database_dict, INPUT_ENERGY_KEY, VALIDATION_KEY)
+
+    # get minimal value of energy to use it in relative values calculation.
+    min_energy_value = min(list_of_all_energies)
+
+    # for each file calculate relative energy value in kcal/mol and insert it into database dict
+    for file in database_dict.keys():
+        database_dict[file][OUTPUT_ENERGY_KEY] = get_relative_value_in_kcal(database_dict[file][INPUT_ENERGY_KEY], min_energy_value)
+
+
+
+
 # main method of conformer search. Called by GUI button
 def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, energy_limit: float) -> None:
     """Performs analysis of data from conformer search calculations in specified parameters. Returns None."""
@@ -186,9 +216,14 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             # initialize database that will store data from files
             cs_database = create_database_with_placeholder_data(outfile_list)
             
-            # TODO extract data from files
-            # TODO multithreaded? :eyes:
+            # Extract data from file to database
             extract_data_from_files(cs_parent_folderpath, outfile_list, cs_database)
+
+            # Calculate relative values of energy for Hatree-Fock energy and Gibbs free energy
+            calculate_relative_energy_values(cs_database, DictKeys.KEY_HF_ENERGY, DictKeys.KEY_IS_OPTIMIZATION_DONE, DictKeys.KEY_HF_RELATIVE_ENERGY)
+            calculate_relative_energy_values(cs_database, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL, DictKeys.KEY_DG_RELATIVE_ENERGY)
+
+
 
 
 if __name__== "__main__":
