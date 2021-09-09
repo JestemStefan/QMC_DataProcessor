@@ -162,15 +162,22 @@ def extract_data_from_files(parent_folder_path: str, filenames_list: list, data_
             data_base_dict[filename][DictKeys.KEY_ABSOLUTE_PATH] = file_abs_filepath
 
 
-def get_valid_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int, VALIDATION_KEY: int) -> list:
+def get_valid_energy_values(database_dict: dict, INPUT_ENERGY_KEY, VALIDATION_KEY) -> list:
     """Extract values specified by an INPUT_ENERGY_KEY from a database_dict that return True from VALIDATION_KEY. Returns list of extracted values"""
-
+    
     return [database_dict[file][INPUT_ENERGY_KEY] for file in database_dict.keys() if database_dict[file][VALIDATION_KEY]]
 
 
-def get_relative_value_in_kcal(input_value: float, minimal_value: float) -> float:
+def get_relative_value_in_kcal(input_value: float, base_value: float) -> float:
     """Takes input value and substracts minimal value from it. Use HATREE_CONST to convert value to kcal/mol. Returns relative value as float"""
-    return (input_value - minimal_value) * CustomConstants.HATREE_CONST
+
+    if type(input_value) not in [int, float]:
+        raise TypeError("Input value must be a number")
+    
+    if type(base_value) not in [int, float]:
+        raise TypeError("Base value must be a number")
+    
+    return (input_value - base_value) * CustomConstants.HATREE_CONST
 
 
 def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int, VALIDATION_KEY: int, OUTPUT_ENERGY_KEY: int):
