@@ -1,7 +1,9 @@
 from enum import Enum
 from tkinter import messagebox
 import os
+import shutil
 import re
+from datetime import datetime
 
 class DictKeys(Enum):
     KEY_FILENAME = 0
@@ -62,6 +64,25 @@ def sort_filenames_by_last_number(list_to_sort: list) -> list:
 
     # merge sorted lists and return new list
     return list_of_filenames_with_numbers + list_of_filenames_no_numbers
+
+
+def create_output_folder(selected_path: str) -> str:
+    """Creates folder with unique name based on current time and date that will store output data. Returns path to created folder"""
+    
+    # create unique name for output folder using current time and date
+    output_folder_name = "Output_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+
+    # get parent folder name to place output folder there
+    parent_folder_name = os.path.dirname(selected_path)
+
+    # create absolute path to output folder
+    output_folderpath = "\\".join([parent_folder_name, output_folder_name])
+
+    # create new directory
+    os.mkdir(output_folderpath)
+
+    # return created output folder path
+    return output_folderpath
 
 
 # method for creating database with placeholder entires for each file
@@ -180,7 +201,7 @@ def get_relative_value_in_kcal(input_value: float, base_value: float) -> float:
     return (input_value - base_value) * CustomConstants.HATREE_CONST
 
 
-def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int, VALIDATION_KEY: int, OUTPUT_ENERGY_KEY: int):
+def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int, VALIDATION_KEY: int, OUTPUT_ENERGY_KEY: int) -> None:
     """Calculate relative values of energy data. Insert data straight into dictionary. Returns None."""
     
     # Get correct values by removing values from files that failed calculations.
@@ -200,9 +221,47 @@ def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int,
 
 
 
-def find_unique_and_duplicate_conformers(database_dict: dict) -> None:
-    pass
+def find_unique_and_duplicate_conformers(database_dict: dict, output_folder: str) -> None:
+    """Analyze data in database and find unique and duplicate files. Copy files to new folders. Returns None"""
 
+    # Prepare folderpath for each category of files
+    duplicates_folderpath = "\\".join([output_folder, "Duplicates"])
+    unique_folderpath = "\\".join([output_folder, "Unique_Conformers"])
+    failed_folderpath = "\\".join([output_folder, "Failed_Files"])
+
+    # Create output folders
+    os.mkdir(duplicates_folderpath)
+    os.mkdir(unique_folderpath)
+    os.mkdir(failed_folderpath)
+
+    # TODO Add 3D space coordinates analysis
+
+    # Create an array that will store previous energies to compare and find duplicates
+    existing_energy_pair_arr = []
+
+    # Check each file
+    for file in database_dict:
+        
+        # Round energy to 6 decimal places, because this is a limit of accuracy for this calculations
+        hf_dg_energy_pair = [round(database_dict[file][DictKeys.KEY_HF_ENERGY], 6), round(database_dict[file][DictKeys.KEY_DG_ENERGY], 6)]
+
+        # Check if this energy pair already exists
+        if hf_dg_energy_pair in existing_energy_pair_arr:
+            
+            # Copy duplicate to Duplicates folder
+            shutil.copy2(database_dict[file][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([duplicates_folderpath, database_dict[file][DictKeys.KEY_FILENAME]]))
+        
+        # if unique
+        else:
+            # Add its energy to the list of energies
+            existing_energy_pair_arr.append(hf_dg_energy_pair)
+
+            # Copy file to the folder with Unique files
+            shutil.copy2(database_dict[file][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([unique_folderpath, database_dict[file][DictKeys.KEY_FILENAME]]))
+
+        # if calculations failed then copy files to Failed folder.
+        if not database_dict[file][DictKeys.KEY_IS_OPTIMIZATION_DONE]:
+            shutil.copy2(database_dict[file][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([failed_folderpath, database_dict[file][DictKeys.KEY_FILENAME]]))
 
 
 # main method of conformer search. Called by GUI button
@@ -229,6 +288,8 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             # Sort filenames in outfile_list using natural sort
             outfile_list = sort_filenames_by_last_number(outfile_list)
 
+            output_folder_path = create_output_folder(cs_parent_folderpath)
+
             # initialize database that will store data from files
             cs_database = create_database_with_placeholder_data(outfile_list)
             
@@ -239,7 +300,7 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             calculate_relative_energy_values(cs_database, DictKeys.KEY_HF_ENERGY, DictKeys.KEY_IS_OPTIMIZATION_DONE, DictKeys.KEY_HF_RELATIVE_ENERGY)
             calculate_relative_energy_values(cs_database, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL, DictKeys.KEY_DG_RELATIVE_ENERGY)
 
-            find_unique_and_duplicate_conformers()
+            find_unique_and_duplicate_conformers(cs_database, output_folder_path)
 
 
 
