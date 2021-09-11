@@ -4,6 +4,7 @@ import os
 import shutil
 import re
 from datetime import datetime
+import math
 
 class DictKeys(Enum):
     KEY_FILENAME = 0
@@ -21,6 +22,7 @@ class DictKeys(Enum):
 
 class CustomConstants:
     HATREE_CONST = 627.5094740631 #kcal/mol
+    GAS_CONST = 0.00198720425864083 #kcal/(K/mol)
 
 
 # Method to find and load .out files in selected folder
@@ -50,14 +52,14 @@ def sort_filenames_by_last_number(list_to_sort: list) -> list:
     """Sorts list by last number in filename if possible. Use default sort otherwise. Returns sorted list."""
 
     # Before sorting split list into two list: One with filenames with numbers and one without any.
-    list_of_filenames_with_numbers = [x for x in list_to_sort if len(re.findall('\d+', x)) > 0]
-    list_of_filenames_no_numbers = [x for x in list_to_sort if len(re.findall('\d+', x)) == 0]
+    list_of_filenames_with_numbers = [x for x in list_to_sort if len(re.findall(r'\d+', x)) > 0]
+    list_of_filenames_no_numbers = [x for x in list_to_sort if len(re.findall(r'\d+', x)) == 0]
 
     # if there are filenames with number in them
     if list_of_filenames_with_numbers:
 
         # find all numbers in filename and pick up the last number as key for sorting. 
-        list_of_filenames_with_numbers.sort(key=lambda x: int(re.findall('\d+', x)[-1]))
+        list_of_filenames_with_numbers.sort(key=lambda x: int(re.findall(r'\d+', x)[-1]))
     
     # sort remaining filenames using default sorting.
     list_of_filenames_no_numbers.sort()
@@ -217,7 +219,7 @@ def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int,
         
         # if validation fail then return "-" aka don't try to calculate it
         else:
-            database_dict[file][OUTPUT_ENERGY_KEY] = "-"
+            database_dict[file][OUTPUT_ENERGY_KEY] = math.inf
 
 
 def find_unique_and_duplicate_conformers(database_dict: dict, output_folder: str) -> None:
@@ -249,6 +251,10 @@ def find_unique_and_duplicate_conformers(database_dict: dict, output_folder: str
             
             # Copy duplicate to Duplicates folder
             shutil.copy2(database_dict[file][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([duplicates_folderpath, database_dict[file][DictKeys.KEY_FILENAME]]))
+
+            # Set as not unique = Duplicate
+            database_dict[file][DictKeys.KEY_IS_UNIQUE] = False
+
         
         # if unique
         else:
@@ -258,13 +264,48 @@ def find_unique_and_duplicate_conformers(database_dict: dict, output_folder: str
             # Copy file to the folder with Unique files
             shutil.copy2(database_dict[file][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([unique_folderpath, database_dict[file][DictKeys.KEY_FILENAME]]))
 
+            # Set as unique
+            database_dict[file][DictKeys.KEY_IS_UNIQUE] = True
+
         # if calculations failed then copy files to Failed folder.
         if not database_dict[file][DictKeys.KEY_IS_OPTIMIZATION_DONE]:
             shutil.copy2(database_dict[file][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([failed_folderpath, database_dict[file][DictKeys.KEY_FILENAME]]))
 
 
-def calculate_population_of_conformers(database_dict: dict, key_relative_energy) -> None:
-    pass
+def calculate_population_of_conformers(database_dict: dict, key_relative_energy, population_key, temperature: float, energy_limit: float) -> None:
+    """Finds population of each conformer from the database by comparing relative energies. Returns None"""
+
+    # create variable that will store sum of all conformers
+    population_sum = 0
+
+    # for each conformer in database
+    for conformer in database_dict:
+
+        # set up initial population to zero
+        conformer_population = 0
+
+        # if conformer relative energy is higher then a limit or conformer is not unique or calculation failed
+        if (database_dict[conformer][key_relative_energy] > energy_limit 
+            or not database_dict[conformer][DictKeys.KEY_IS_UNIQUE] 
+            or not database_dict[conformer][DictKeys.KEY_IS_OPTIMIZATION_DONE]):
+            
+            # skip / set population to 0
+            conformer_population = 0
+        
+        # file is unique and relative energy is under limit
+        else:
+            # use normal distribution formula to calculate population based on input parameters
+            conformer_population = math.exp(-1 * database_dict[conformer][key_relative_energy] / temperature / CustomConstants.GAS_CONST)
+        
+        # save row population value to database for later recalculation 
+        database_dict[conformer][population_key] = conformer_population
+        
+        # add conformer population to the sum
+        population_sum += conformer_population
+        
+    # recalculate population value for each conformer as percentage of sum
+    for conformer in database_dict:
+        database_dict[conformer][population_key] = round(100 * database_dict[conformer][population_key]/population_sum, 2)
 
 
 # main method of conformer search. Called by GUI button
@@ -304,6 +345,9 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             calculate_relative_energy_values(cs_database, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL, DictKeys.KEY_DG_RELATIVE_ENERGY)
 
             find_unique_and_duplicate_conformers(cs_database, output_folder_path)
+
+            calculate_population_of_conformers(cs_database, DictKeys.KEY_HF_RELATIVE_ENERGY, DictKeys.KEY_HF_POPULATION, temperature, energy_limit)
+            calculate_population_of_conformers(cs_database, DictKeys.KEY_DG_RELATIVE_ENERGY, DictKeys.KEY_DG_POPULATION, temperature, energy_limit)
 
 
 
