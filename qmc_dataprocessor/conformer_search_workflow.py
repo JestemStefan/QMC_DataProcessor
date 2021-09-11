@@ -220,7 +220,6 @@ def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int,
             database_dict[file][OUTPUT_ENERGY_KEY] = "-"
 
 
-
 def find_unique_and_duplicate_conformers(database_dict: dict, output_folder: str) -> None:
     """Analyze data in database and find unique and duplicate files. Copy files to new folders. Returns None"""
 
@@ -264,6 +263,10 @@ def find_unique_and_duplicate_conformers(database_dict: dict, output_folder: str
             shutil.copy2(database_dict[file][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([failed_folderpath, database_dict[file][DictKeys.KEY_FILENAME]]))
 
 
+def calculate_population_of_conformers(database_dict: dict, key_relative_energy) -> None:
+    pass
+
+
 # main method of conformer search. Called by GUI button
 def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, energy_limit: float) -> None:
     """Performs analysis of data from conformer search calculations in specified parameters. Returns None."""
@@ -301,7 +304,6 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             calculate_relative_energy_values(cs_database, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL, DictKeys.KEY_DG_RELATIVE_ENERGY)
 
             find_unique_and_duplicate_conformers(cs_database, output_folder_path)
-
 
 
 
