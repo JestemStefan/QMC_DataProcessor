@@ -258,12 +258,12 @@ class TestConformerSearchRelativeValues(unittest.TestCase):
         calculate_relative_energy_values(self.test_database_dict, DictKeys.KEY_HF_ENERGY, DictKeys.KEY_IS_OPTIMIZATION_DONE, DictKeys.KEY_HF_RELATIVE_ENERGY)
         
         self.assertEqual(self.test_database_dict["testkey1"][DictKeys.KEY_HF_RELATIVE_ENERGY], 1255.0189481262)
-        self.assertEqual(self.test_database_dict["testkey2"][DictKeys.KEY_HF_RELATIVE_ENERGY], "-")
+        self.assertEqual(self.test_database_dict["testkey2"][DictKeys.KEY_HF_RELATIVE_ENERGY], math.inf)
         self.assertEqual(self.test_database_dict["testkey3"][DictKeys.KEY_HF_RELATIVE_ENERGY], 0)
 
         calculate_relative_energy_values(self.test_database_dict, DictKeys.KEY_DG_ENERGY, DictKeys.KEY_ARE_FREQUENCIES_REAL, DictKeys.KEY_DG_RELATIVE_ENERGY)
 
         self.assertEqual(self.test_database_dict["testkey1"][DictKeys.KEY_DG_RELATIVE_ENERGY], 627.5094740631)
         self.assertEqual(self.test_database_dict["testkey2"][DictKeys.KEY_DG_RELATIVE_ENERGY], 0)
-        self.assertEqual(self.test_database_dict["testkey3"][DictKeys.KEY_DG_RELATIVE_ENERGY], "-")
+        self.assertEqual(self.test_database_dict["testkey3"][DictKeys.KEY_DG_RELATIVE_ENERGY], math.inf)
 
