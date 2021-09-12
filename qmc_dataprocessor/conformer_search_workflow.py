@@ -5,6 +5,7 @@ import shutil
 import re
 from datetime import datetime
 import math
+import xlsxwriter
 
 class DictKeys(Enum):
     KEY_FILENAME = 0
@@ -17,7 +18,8 @@ class DictKeys(Enum):
     KEY_DG_RELATIVE_ENERGY = 7
     KEY_DG_POPULATION = 8
     KEY_IS_UNIQUE = 9
-    KEY_ABSOLUTE_PATH = 10
+    KEY_IS_LOW_ENERGY = 10
+    KEY_ABSOLUTE_PATH = 11
 
 
 class CustomConstants:
@@ -107,6 +109,7 @@ def create_database_with_placeholder_data(list_of_filenames: list) -> dict:
                   DictKeys.KEY_DG_RELATIVE_ENERGY : 0,
                   DictKeys.KEY_DG_POPULATION : 0,
                   DictKeys.KEY_IS_UNIQUE : False,
+                  DictKeys.KEY_IS_LOW_ENERGY : False,
                   DictKeys.KEY_ABSOLUTE_PATH : "default_path"}
 
     # fill the database with placeholder data
@@ -214,12 +217,8 @@ def calculate_relative_energy_values(database_dict: dict, INPUT_ENERGY_KEY: int,
 
     # for each file calculate relative energy value in kcal/mol and insert it into database dict
     for file in database_dict.keys():
-        if database_dict[file][VALIDATION_KEY]:
-            database_dict[file][OUTPUT_ENERGY_KEY] = get_relative_value_in_kcal(database_dict[file][INPUT_ENERGY_KEY], min_energy_value)
-        
-        # if validation fail then return "-" aka don't try to calculate it
-        else:
-            database_dict[file][OUTPUT_ENERGY_KEY] = math.inf
+
+        database_dict[file][OUTPUT_ENERGY_KEY] = get_relative_value_in_kcal(database_dict[file][INPUT_ENERGY_KEY], min_energy_value)
 
 
 def find_unique_and_duplicate_conformers(database_dict: dict, output_folder: str) -> None:
@@ -326,8 +325,98 @@ def find_low_energy_conformers(database_dict: dict, energy_limit: float, output_
             # if any energy is below energy limit
             if database_dict[conformer][DictKeys.KEY_HF_ENERGY] <= energy_limit or database_dict[conformer][DictKeys.KEY_DG_RELATIVE_ENERGY] <= energy_limit:
                 
+                # mark as low energy conformer
+                database_dict[conformer][DictKeys.KEY_IS_LOW_ENERGY] = True
+
                 # copy file to folder
                 shutil.copy2(database_dict[conformer][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([low_energy_folderpath, database_dict[conformer][DictKeys.KEY_FILENAME]]))
+
+
+def export_to_excel(database_dict: dict, output_folderpath: str) -> None:
+    """Exports collected data to excel file. Returns None"""
+    
+    # Createnew excel file
+    excel_output_file = xlsxwriter.Workbook("\\".join([output_folderpath, "Summary.xlsx"]))
+
+    # Inside file create worksheet called Summary, Unique and Low Energy Conformers
+    ws_summary = excel_output_file.add_worksheet("Summary")
+    ws_unique = excel_output_file.add_worksheet("Unique")
+    ws_low_energy_conformers = excel_output_file.add_worksheet("Low Energy Conformers")
+
+    # Setting format for cells
+    center = excel_output_file.add_format({'align': 'center'})
+    mark_green = excel_output_file.add_format({'align': 'center', 'bg_color': "#98fb98"})  # green in HEX
+    mark_yellow = excel_output_file.add_format({'align': 'center', 'bg_color': "#f7ff7e"})  # red in HEX
+    mark_red = excel_output_file.add_format({'align': 'center', 'bg_color': "#ffcccb"})  # red in HEX
+
+    # Preparing titles for 1st row
+    titles = ["Name", "Opt_Done", "Vib_Done",
+              "HF", "Relative HF [kcal]", "HF population[%]",
+              "dG", "Relative dG [kcal]", "dG population[%]", "Unique?"]
+    
+     # column width setup
+    for worksheet in ws_summary, ws_unique, ws_low_energy_conformers:
+        worksheet.set_column("A:A", 36)
+        worksheet.set_column("B:I", 20)
+
+        # Place titles in first row
+        for index, title in enumerate(titles):
+            worksheet.write(0, index, title, center)
+    
+    row_u = 1  # row value for unique worksheet
+    row_l = 1  # row value for low energy worksheet
+
+    # for each data entry in database
+    for index, file in enumerate(database_dict):
+        
+        # set format as center by default
+        use_format = center
+
+        # list of keys to use
+        key_list = [DictKeys.KEY_FILENAME,
+                  DictKeys.KEY_IS_OPTIMIZATION_DONE,
+                  DictKeys.KEY_ARE_FREQUENCIES_REAL,
+                  DictKeys.KEY_HF_ENERGY,
+                  DictKeys.KEY_HF_RELATIVE_ENERGY,
+                  DictKeys.KEY_HF_POPULATION,
+                  DictKeys.KEY_DG_ENERGY,
+                  DictKeys.KEY_DG_RELATIVE_ENERGY,
+                  DictKeys.KEY_DG_POPULATION,
+                  DictKeys.KEY_IS_UNIQUE]
+
+        # If file is unique then mark row in green
+        if database_dict[file][DictKeys.KEY_IS_UNIQUE]:
+            use_format = mark_green
+
+            # if file failed is result of failed calculations then mark row in red
+            if not database_dict[file][DictKeys.KEY_IS_OPTIMIZATION_DONE]:
+                use_format = mark_red
+            
+            # if file have negative frequencies (imaginary frequencies) then mark in yellow
+            elif not database_dict[file][DictKeys.KEY_ARE_FREQUENCIES_REAL]:
+                use_format = mark_yellow
+            
+            # for each key enter data into a row
+            for column in range(len(key_list)):
+                ws_unique.write(row_u, column, database_dict[file][key_list[column]], use_format)
+
+            # next row in unique spreadsheet
+            row_u += 1
+
+            # if this unique file is also low energy conformer then add data to low_energy worksheet
+            if database_dict[file][DictKeys.KEY_IS_LOW_ENERGY]:
+                for column in range(len(key_list)):
+                    ws_low_energy_conformers.write(row_l, column, database_dict[file][key_list[column]], use_format)
+                
+                # prepare next row in low_energy worksheet
+                row_l += 1  
+
+        # write every file data in first spreadsheet
+        for column in range(len(key_list)):
+            ws_summary.write(index + 1, column, database_dict[file][key_list[column]], use_format)
+
+    excel_output_file.close()
+
 
 
 # main method of conformer search. Called by GUI button
@@ -372,6 +461,12 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             calculate_population_of_conformers(cs_database, DictKeys.KEY_DG_RELATIVE_ENERGY, DictKeys.KEY_DG_POPULATION, temperature, energy_limit)
 
             find_low_energy_conformers(cs_database, energy_limit, output_folder_path)
+
+            export_to_excel(cs_database, output_folder_path)
+
+            os.startfile(output_folder_path)
+
+
 
 
 if __name__== "__main__":
