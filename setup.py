@@ -1,5 +1,11 @@
 from distutils.core import setup
-#lgtm [py/unused-import]
-import py2exe
+import py2exe #lgtm [py/unused-import]
+import sys 
 
-setup(console=["qmc_dataprocessor\qmc_dataprocessor.py"])
+main_script_dir = "qmc_dataprocessor\qmc_dataprocessor.py"
+main_folder = main_script_dir.rsplit("\\",1)[0]
+sys.path.append(main_folder)
+
+setup(options = {"py2exe" : {"bundle_files": 1, "compressed" : True}},
+    windows = [{"script" : "qmc_dataprocessor\qmc_dataprocessor.py"}],
+    zipfile = None)

@@ -308,6 +308,28 @@ def calculate_population_of_conformers(database_dict: dict, key_relative_energy,
         database_dict[conformer][population_key] = round(100 * database_dict[conformer][population_key]/population_sum, 2)
 
 
+def find_low_energy_conformers(database_dict: dict, energy_limit: float, output_folder: str) -> None:
+    """Finds conformers in database that have energy below specified limit and copy them to output folder. Returns None"""
+
+    # Create path to folder that will store low energy conformers
+    low_energy_folderpath = "\\".join([output_folder, "Low_energy_conformers"])
+
+    # create folder
+    os.mkdir(low_energy_folderpath)
+
+    # for each conformer
+    for conformer in database_dict:
+        
+        # check if file is unique
+        if database_dict[conformer][DictKeys.KEY_IS_UNIQUE]:
+            
+            # if any energy is below energy limit
+            if database_dict[conformer][DictKeys.KEY_HF_ENERGY] <= energy_limit or database_dict[conformer][DictKeys.KEY_DG_RELATIVE_ENERGY] <= energy_limit:
+                
+                # copy file to folder
+                shutil.copy2(database_dict[conformer][DictKeys.KEY_ABSOLUTE_PATH], "\\".join([low_energy_folderpath, database_dict[conformer][DictKeys.KEY_FILENAME]]))
+
+
 # main method of conformer search. Called by GUI button
 def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, energy_limit: float) -> None:
     """Performs analysis of data from conformer search calculations in specified parameters. Returns None."""
@@ -349,6 +371,7 @@ def conformer_search_workflow(cs_parent_folderpath: str, temperature: float, ene
             calculate_population_of_conformers(cs_database, DictKeys.KEY_HF_RELATIVE_ENERGY, DictKeys.KEY_HF_POPULATION, temperature, energy_limit)
             calculate_population_of_conformers(cs_database, DictKeys.KEY_DG_RELATIVE_ENERGY, DictKeys.KEY_DG_POPULATION, temperature, energy_limit)
 
+            find_low_energy_conformers(cs_database, energy_limit, output_folder_path)
 
 
 if __name__== "__main__":
