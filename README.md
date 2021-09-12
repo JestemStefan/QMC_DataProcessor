@@ -82,6 +82,9 @@ or download dist folder from [Here](https://github.com/JestemStefan/QMC_DataProc
 
 After successful analysis folder with results will be automatically opened.
 
+![obraz](https://user-images.githubusercontent.com/37214990/133004885-97580e92-60a6-4f09-a34b-5a68d96a1a7a.png)
+
+
 
 
 <!-- ROADMAP -->
