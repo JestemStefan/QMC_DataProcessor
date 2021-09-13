@@ -226,7 +226,7 @@ def GUI_window() -> None:
 
     cd_path = StringVar()
 
-    # Button for selecting path to folder for circular dichroism
+    # create button for selecting path to folder for circular dichroism workflow
     cd_select_button = Button(tab_circular_dichroism,
                               text="Select folder",
                               height="2",
@@ -234,7 +234,7 @@ def GUI_window() -> None:
                               font=("Calibri", 12, 'bold'),
                               command=lambda: select_cd_folder_path(cd_path))
 
-     # Placing button on the gird
+     # place button on the gird
     cd_select_button.grid(row=0,
                           column=0,
                           padx=40,
@@ -242,107 +242,119 @@ def GUI_window() -> None:
                           columnspan=3,
                           sticky=W + E + N + S)
     
-    # Label that displays path to folder selected for CD analysis
+    # Create label that displays path to the folder selected for CD analysis
     cd_filepath_label = Message(tab_circular_dichroism,
                               textvariable=cd_path,
                               font=("Calibri", 10, "bold"),
                               width=250)
     
-     # Placing Label on the gird
+     # place label on the gird
     cd_filepath_label.grid(row=1,
                             column=0,
                             pady=0,
                             columnspan=3,
                             sticky=W+E+N+S)
 
-    # Range Entry setup
-    # Label for min-max range
+    # range entries setup
+    # Create label for min-max range
     range_label = Label(tab_circular_dichroism,
                        text="Wavelength range",
                        font=("Calibri", 12, 'bold'))
 
+    # Place on a grid
     range_label.grid(row=2,
                     column=0,
                     padx=10,
                     sticky=E)
 
-    # Range minimum entry
+    # Create minimum range entry
     range_min_entry = Entry(tab_circular_dichroism,
                           width=10,
                           justify="center",
                           validate='key',
                           font=("Calibri", 12, 'bold'))
 
-    # set default value for temperature (25 degrees Celsius or 298.15 K)
+    # set default value to 150 nm
     range_min_entry.delete(0, END)
     range_min_entry.insert(0, "150")
 
+    # validate entry
     range_min_entry["validatecommand"] = (range_min_entry.register(test_val), "%P", "%d")
 
+    # place on a grid
     range_min_entry.grid(row=2,
                        column=1,
                        padx=0,
                        pady=5,
                        sticky=W+E+N+S)
 
-    # Range minimum entry
+    # Create maximum range entry
     range_max_entry = Entry(tab_circular_dichroism,
                           width=5,
                           justify="center",
                           validate='key',
                           font=("Calibri", 12, 'bold'))
 
-    # set default value for temperature (25 degrees Celsius or 298.15 K)
+    # set default value to 650 nm
     range_max_entry.delete(0, END)
     range_max_entry.insert(0, "650")
 
+    # validate entry
     range_max_entry["validatecommand"] = (range_max_entry.register(test_val), "%P", "%d")
 
+    # place on a grid
     range_max_entry.grid(row=3,
                        column=1,
                        padx=0,
                        pady=0,
                        sticky=W+E+N+S)
 
-    # Range minimum unit
+    # Create minimum range unit label
     range_min_unit_label = Label(tab_circular_dichroism,
                                 text="nm",
                                 font=("Calibri", 12, 'bold'))
 
+    # place on a grid
     range_min_unit_label.grid(row=2,
                              column=2,
                              padx=5,
                              sticky=W)
 
-    # Range maximum unit
+    # Create maximum range unit label
     range_max_unit_label = Label(tab_circular_dichroism,
                                 text="nm",
                                 font=("Calibri", 12, 'bold'))
 
+    # place on a grid
     range_max_unit_label.grid(row=3,
                              column=2,
                              padx=5,
                              sticky=W)
-
+    
+    # create title label for halfwidths
     halfwidth_label = Label(tab_circular_dichroism,
                               text="Halfwidths",
                               font=("Calibri", 12, 'bold'))
 
+    # place on a grid
     halfwidth_label.grid(row=5,
                          column=0,
                          padx=0,
                          pady=20,
                          sticky=S)
 
+    # create label for uv halfwidth
     uv_halfwidth_label = Label(tab_circular_dichroism,
                               text="UV",
                               font=("Calibri", 12, 'bold'))
 
+    # place on a grid
     uv_halfwidth_label.grid(row=6,
                            column=0,
                            padx=10,
                            sticky=E)
 
+    # create spinbox for uv halfwidth
     uv_halfwidth_spinbox = Spinbox(tab_circular_dichroism,
                                    from_=0,
                                    to=1,
@@ -353,12 +365,14 @@ def GUI_window() -> None:
                                    validate='key',
                                    font=("Calibri", 12, 'bold'))
 
-    # set default value for temperature (25 degrees Celsius or 298.15 K)
+    # set default value to 0.4
     uv_halfwidth_spinbox.delete(0, END)
     uv_halfwidth_spinbox.insert(0, "0.40")
 
+    # validate entry
     uv_halfwidth_spinbox["validatecommand"] = (uv_halfwidth_spinbox.register(test_val), "%P", "%d")
 
+    # place on a grid
     uv_halfwidth_spinbox.grid(row=6,
                               column=1,
                               padx=0,
@@ -366,25 +380,29 @@ def GUI_window() -> None:
                               sticky=W+E+N+S)
 
 
-    # eV unit for entries
+    # create unit label for halfwidths
     uv_unit_label = Label(tab_circular_dichroism,
                                 text="eV",
                                 font=("Calibri", 12, 'bold'))
 
+    # place unit label on a grid
     uv_unit_label.grid(row=6,
                        column=2,
                        padx=5,
                        sticky=W)
 
+    #create label for cd velocity
     cd_vel_halfwidth_label = Label(tab_circular_dichroism,
                               text="CD velocity",
                               font=("Calibri", 12, 'bold'))
 
+    # place on a grid
     cd_vel_halfwidth_label.grid(row=7,
                            column=0,
                            padx=10,
                            sticky=E)
 
+    # create spinbox for cd velocity
     cd_vel_halfwidth_spinbox = Spinbox(tab_circular_dichroism,
                                    from_=0,
                                    to=1,
@@ -395,38 +413,43 @@ def GUI_window() -> None:
                                    validate='key',
                                    font=("Calibri", 12, 'bold'))
 
-    # set default value for temperature (25 degrees Celsius or 298.15 K)
+    # set default value to 0.4
     cd_vel_halfwidth_spinbox.delete(0, END)
     cd_vel_halfwidth_spinbox.insert(0, "0.40")
 
+    # validate entry
     cd_vel_halfwidth_spinbox["validatecommand"] = (cd_vel_halfwidth_spinbox.register(test_val), "%P", "%d")
 
+    # place on a grid
     cd_vel_halfwidth_spinbox.grid(row=7,
                               column=1,
                               padx=0,
                               pady=0,
                               sticky=W+E+N+S)
 
-    # eV unit for entries
+    # create unit label for cd velocity
     cd_vel_unit_label = Label(tab_circular_dichroism,
                                 text="eV",
                                 font=("Calibri", 12, 'bold'))
 
+    # place it on a grid
     cd_vel_unit_label.grid(row=7,
                        column=2,
                        padx=5,
                        sticky=W)
 
-
-    cd_vel_half_width_label = Label(tab_circular_dichroism,
+    # create label for cd length
+    cd_len_halfwidth_label = Label(tab_circular_dichroism,
                               text="CD length",
                               font=("Calibri", 12, 'bold'))
 
-    cd_vel_half_width_label.grid(row=8,
+    # place on a grid
+    cd_len_halfwidth_label.grid(row=8,
                            column=0,
                            padx=10,
                            sticky=E)
 
+    # create spinbox for cd length
     cd_len_halfwidth_spinbox = Spinbox(tab_circular_dichroism,
                                    from_=0,
                                    to=1,
@@ -437,31 +460,34 @@ def GUI_window() -> None:
                                    validate='key',
                                    font=("Calibri", 12, 'bold'))
 
-    # set default value for temperature (25 degrees Celsius or 298.15 K)
+    # set default value to 0.4
     cd_len_halfwidth_spinbox.delete(0, END)
     cd_len_halfwidth_spinbox.insert(0, "0.40")
 
+    # validate entry
     cd_len_halfwidth_spinbox["validatecommand"] = (cd_len_halfwidth_spinbox.register(test_val), "%P", "%d")
 
+    # place ona  grid
     cd_len_halfwidth_spinbox.grid(row=8,
-                              column=1,
-                              padx=0,
-                              pady=5,
-                              sticky=W+E+N+S)
+                                column=1,
+                                padx=0,
+                                pady=5,
+                                sticky=W+E+N+S)
 
 
-    # eV unit for entries
+    # create unit label for cd length
     cd_len_unit_label = Label(tab_circular_dichroism,
                                 text="eV",
                                 font=("Calibri", 12, 'bold'))
 
+    # place it on a grid
     cd_len_unit_label.grid(row=8,
                        column=2,
                        padx=5,
                        sticky=W)
 
 
-    # This button starts CD spectra analysis
+    # create button that starts CD spectra analysis
     cd_analysis_button = Button(tab_circular_dichroism,
                                 text="CD spectra analysis",
                                 height="2",
@@ -474,7 +500,7 @@ def GUI_window() -> None:
                                                                                         float(cd_vel_halfwidth_spinbox.get()),
                                                                                         float(cd_len_halfwidth_spinbox.get())))
 
-    # Placing button on the grid
+    # Place button on the grid
     cd_analysis_button.grid(row=9,
                             column=0,
                             padx=40,
@@ -482,7 +508,7 @@ def GUI_window() -> None:
                             columnspan=3,
                             sticky=W+E+N+S)
 
-
+    # update windows size
     GUI.geometry("")
 
     # loop/refresh
