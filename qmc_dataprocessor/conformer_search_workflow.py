@@ -71,7 +71,8 @@ def sort_filenames_by_last_number(list_to_sort: list) -> list:
 
 
 def create_output_folder(selected_path: str) -> str:
-    """Creates folder with unique name based on current time and date that will store output data. Returns path to created folder"""
+    """Creates folder with unique name based on current time and date
+    that will store output data. Returns path to created folder"""
     
     # create unique name for output folder using current time and date
     output_folder_name = "Output_" + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
@@ -89,7 +90,7 @@ def create_output_folder(selected_path: str) -> str:
     return output_folderpath
 
 
-# method for creating database with placeholder entires for each file
+# method for creating database with placeholder entries for each file
 def create_database_with_placeholder_data(list_of_filenames: list) -> dict:
     """Creates database dictionary with placeholder data for each file. Returns database as dictionary."""
 
@@ -149,7 +150,7 @@ def extract_data_from_files(parent_folder_path: str, filenames_list: list, data_
             is_optimization_successful = data_base_dict[filename][DictKeys.KEY_IS_OPTIMIZATION_DONE]
             are_all_frequencies_real = data_base_dict[filename][DictKeys.KEY_ARE_FREQUENCIES_REAL]
 
-            # create abslute path for file for convenience
+            # create absolute path for file for convenience
             file_abs_filepath = "\\".join([parent_folder_path, filename])
 
             # open file and check each line in it
